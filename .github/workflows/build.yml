@@ -84,7 +84,8 @@ jobs:
           set -euo pipefail
           out=$(file "$RUNNER_TEMP/alloy"); echo "$out"
           grep -q 'MIPS' <<<"$out" && grep -q 'MSB' <<<"$out"
-          vm=$(go version -m "$RUNNER_TEMP/alloy"); echo "$vm" | head -20
+          # here-string: a `echo | head` pipe gets SIGPIPE and fails under pipefail
+          vm=$(go version -m "$RUNNER_TEMP/alloy"); head -20 <<<"$vm"
           grep -F -- "-X github.com/grafana/alloy/internal/build.Version=$TAG" <<<"$vm" \
             || grep -F -- "build.Version=$TAG" <<<"$vm"
           ls -l "$RUNNER_TEMP/alloy"; df -h /
