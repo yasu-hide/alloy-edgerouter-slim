@@ -31,7 +31,7 @@ jobs:
       tag: ${{ steps.select.outputs.tag }}
       commit: ${{ steps.commit.outputs.sha }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -49,7 +49,7 @@ jobs:
 
       - name: Checkout upstream
         if: steps.select.outputs.tag != ''
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: grafana/alloy
           ref: refs/tags/${{ steps.select.outputs.tag }}
@@ -62,7 +62,7 @@ jobs:
         id: commit
         run: echo "sha=$(git -C upstream rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         if: steps.select.outputs.tag != ''
         with:
           go-version-file: upstream/go.mod
@@ -115,7 +115,7 @@ jobs:
             && sha256sum alloy-linux-mips64-softfloat.gz > alloy-linux-mips64-softfloat.gz.sha256 \
             && cat ./*.sha256 && ls -l)
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.select.outputs.tag != ''
         with:
           name: dist
@@ -129,7 +129,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist
           path: dist
