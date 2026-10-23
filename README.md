@@ -15,7 +15,25 @@ config コンバータと static モードはスタブに差し替えていま�
   upstream 側で Release が公開済み (draft / prerelease でない) の最新タグを選びます。
 - このリポジトリに同名の Release があればスキップします。
 - `workflow_dispatch` でタグを指定可能。`force` で既存 Release の作り直し (削除して再作成)。
-- 成果物: `alloy-<tag>-linux-mips64-softfloat.xz` / `.sha256` / upstream の `LICENSE`。
+- 成果物 (EdgeOS に `xz` が無いため gzip):
+  - `alloy-<tag>-linux-mips64-softfloat.gz` と `.gz.sha256`
+  - 固定名 `alloy-linux-mips64-softfloat.gz` と `.gz.sha256` (上記の複製。cron から固定 URL で取得するため)
+  - upstream の `LICENSE`
+
+## EdgeRouter での取得 (cron 用の例)
+
+```sh
+BASE=https://github.com/yasu-hide/alloy-edgerouter-slim/releases/latest/download
+curl -fsSL -o alloy.gz        $BASE/alloy-linux-mips64-softfloat.gz
+curl -fsSL -o alloy.gz.sha256 $BASE/alloy-linux-mips64-softfloat.gz.sha256
+# .sha256 のファイル名部分は alloy-linux-mips64-softfloat.gz なので、名前を合わせて検証する
+mv alloy.gz alloy-linux-mips64-softfloat.gz && sha256sum -c alloy.gz.sha256 && gunzip -c alloy-linux-mips64-softfloat.gz > alloy.new
+```
+
+- `latest` は「最後に作成された (prerelease でない) Release」です。古いタグを `workflow_dispatch` で作り直すと、
+  `latest` がそのタグに切り替わります。古いタグの再ビルドは避けてください。
+- EdgeOS に `curl` / `wget` が入っているかは未確認です。実機で確認してください。
+- 差し替えは、`alloy.new` を `chmod +x` し、`mv` で置き換えてからサービスを再起動する想定です (本リポジトリでは手順を用意していません)。
 
 ## ローカルでのビルド
 

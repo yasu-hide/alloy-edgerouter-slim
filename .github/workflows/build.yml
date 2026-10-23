@@ -104,10 +104,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir dist
+          # gzip (EdgeOS has no xz). -n omits name/mtime from the header so output is reproducible.
           cp "$RUNNER_TEMP/alloy" "dist/alloy-$TAG-linux-mips64-softfloat"
-          xz -9 -T0 "dist/alloy-$TAG-linux-mips64-softfloat"
+          gzip -9 -n "dist/alloy-$TAG-linux-mips64-softfloat"
+          # Fixed-name copy so cron can use releases/latest/download/alloy-linux-mips64-softfloat.gz
+          cp "dist/alloy-$TAG-linux-mips64-softfloat.gz" dist/alloy-linux-mips64-softfloat.gz
           cp upstream/LICENSE dist/LICENSE
-          (cd dist && sha256sum "alloy-$TAG-linux-mips64-softfloat.xz" > "alloy-$TAG-linux-mips64-softfloat.xz.sha256" && cat ./*.sha256 && ls -l)
+          (cd dist \
+            && sha256sum "alloy-$TAG-linux-mips64-softfloat.gz" > "alloy-$TAG-linux-mips64-softfloat.gz.sha256" \
+            && sha256sum alloy-linux-mips64-softfloat.gz > alloy-linux-mips64-softfloat.gz.sha256 \
+            && cat ./*.sha256 && ls -l)
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: steps.select.outputs.tag != ''
