@@ -41,9 +41,11 @@ sudo systemctl enable --now /config/user-data/grafana-alloy/alloy-update.timer
 ```sh
 systemctl list-timers alloy-update.timer      # 次回実行時刻
 systemctl status alloy-update.service         # 直近の結果 (成功 / failed)
-journalctl -u alloy-update.service            # ログ
+systemctl show alloy-update.service -p Result,ExecMainStatus   # Result=success, ExecMainStatus=0 なら成功
 sudo systemctl start alloy-update.service     # 手動実行 (結果は status で確認)
 ```
+
+EdgeOS は、フラッシュの消耗とメモリの圧迫を避けるため journal を永続化しません。`journalctl` ではログを確認できないので、成否は `systemctl status` の `Active:` と終了コード (`status=0/SUCCESS`) で判定してください。
 
 - `latest` は「最後に作成された (prerelease でない) Release」です。古いタグを `workflow_dispatch` で作り直すと、
   `latest` がそのタグに切り替わります。古いタグの再ビルドは避けてください。
