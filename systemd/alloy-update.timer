@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly grafana-alloy update
+
+[Timer]
+OnCalendar=*-*-01 03:00:00
+RandomizedDelaySec=30min
+Persistent=true
+Unit=alloy-update.service
+
+[Install]
+WantedBy=timers.target

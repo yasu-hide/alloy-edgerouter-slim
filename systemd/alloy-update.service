@@ -1,0 +1,10 @@
+[Unit]
+Description=Update grafana-alloy binary from GitHub Release
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/config/user-data/grafana-alloy
+ExecStart=/config/user-data/grafana-alloy/alloy-update.sh
+TimeoutStartSec=900

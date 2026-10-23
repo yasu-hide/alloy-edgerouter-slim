@@ -17,23 +17,39 @@ config コンバータと static モードはスタブに差し替えていま�
 - `workflow_dispatch` でタグを指定可能。`force` で既存 Release の作り直し (削除して再作成)。
 - 成果物 (EdgeOS に `xz` が無いため gzip):
   - `alloy-<tag>-linux-mips64-softfloat.gz` と `.gz.sha256`
-  - 固定名 `alloy-linux-mips64-softfloat.gz` と `.gz.sha256` (上記の複製。cron から固定 URL で取得するため)
+  - 固定名 `alloy-linux-mips64-softfloat.gz` と `.gz.sha256` (上記の複製。EdgeRouter の systemd timer から固定 URL で取得するため)
   - upstream の `LICENSE`
 
-## EdgeRouter での取得 (cron 用の例)
+## EdgeRouter での自動更新 (systemd timer)
+
+`systemd/` の 3 ファイルで、毎月 1 日 03:00 (ローカル時刻、最大 30 分のランダム遅延) に最新の Release を取得して差し替えます。
+
+- `alloy-update.sh`: 取得、sha256 検証、展開、差し替え、起動確認を行うスクリプト
+- `alloy-update.service`: スクリプトを実行する oneshot の unit
+- `alloy-update.timer`: 月次で service を起動する timer
 
 ```sh
-BASE=https://github.com/yasu-hide/alloy-edgerouter-slim/releases/latest/download
-curl -fsSL -o alloy.gz        $BASE/alloy-linux-mips64-softfloat.gz
-curl -fsSL -o alloy.gz.sha256 $BASE/alloy-linux-mips64-softfloat.gz.sha256
-# .sha256 のファイル名部分は alloy-linux-mips64-softfloat.gz なので、名前を合わせて検証する
-mv alloy.gz alloy-linux-mips64-softfloat.gz && sha256sum -c alloy.gz.sha256 && gunzip -c alloy-linux-mips64-softfloat.gz > alloy.new
+cd /config/user-data/grafana-alloy
+# 3 ファイルをこのディレクトリに置く
+chmod +x alloy-update.sh
+sudo systemctl link /config/user-data/grafana-alloy/alloy-update.service
+sudo systemctl enable --now /config/user-data/grafana-alloy/alloy-update.timer
+```
+
+確認方法:
+
+```sh
+systemctl list-timers alloy-update.timer      # 次回実行時刻
+systemctl status alloy-update.service         # 直近の結果 (成功 / failed)
+journalctl -u alloy-update.service            # ログ
+sudo systemctl start alloy-update.service     # 手動実行 (結果は status で確認)
 ```
 
 - `latest` は「最後に作成された (prerelease でない) Release」です。古いタグを `workflow_dispatch` で作り直すと、
   `latest` がそのタグに切り替わります。古いタグの再ビルドは避けてください。
-- EdgeOS に `curl` / `wget` が入っているかは未確認です。実機で確認してください。
-- 差し替えは、`alloy.new` を `chmod +x` し、`mv` で置き換えてからサービスを再起動する想定です (本リポジトリでは手順を用意していません)。
+- 作業ファイルはすべて `/config/user-data/grafana-alloy/.tmp/` に置き (`alloy` と同一ファイルシステムなので最後の `mv` はリネームです)、実行の開始時と終了時に削除します。
+- 差し替えの前に `.tmp/alloy.new --version` を実行し (pre-flight)、失敗したらサービスを停止せずに終了します。
+- 起動後は約 10 秒待ち、`ActiveState=active` かつ MainPID が起動直後から変わっていないことを確認します。満たさなければエラー終了し、unit は `failed` になります。
 
 ## ローカルでのビルド
 
