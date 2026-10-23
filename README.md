@@ -50,8 +50,7 @@ scripts/build.sh /tmp/alloy v1.21.1 ./alloy      # コールドビルドで約 7
 
 - 60 日間リポジトリに活動が無いと、Public リポジトリの `schedule` は自動無効化されます。
   その場合は Actions タブで該当 workflow を開き "Enable workflow" を押して再有効化してください。
-  (Release 作成が「活動」として数えられるかは未検証)
-- 未検証: qemu-user での実行 (smoke test は非ゲート、`continue-on-error`) / ランナー上の所要時間とディスク使用量 / 実機での動作 (実機確認は人が行う)。
-- ライセンス: upstream は Apache-2.0。LICENSE を成果物に同梱しますが、依存ライブラリの通知義務は未確認です。
+- CI では qemu-user (`qemu-mips64-static`) で `alloy --version` を実行するスモークテストを行います (非ゲート、`continue-on-error`)。
+- ライセンス: upstream は Apache-2.0。LICENSE を成果物に同梱します。
 - このリポジトリ自身 (scripts / workflow / overlay) のライセンスは、upstream に合わせて Apache-2.0 です (`LICENSE`)。
   `LICENSE` は標準の Apache-2.0 全文で、著作権者の表記 (`Copyright [yyyy] [name of copyright owner]`) は附録のひな形のままです。
